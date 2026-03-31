@@ -1,8 +1,15 @@
 # Coding Agent Specs 🤖
 
+[![GitHub stars](https://img.shields.io/github/stars/Ritavidhata/coding-agent-specs?style=social)](https://github.com/Ritavidhata/coding-agent-specs)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-complete-brightgreen.svg)](SPECIFICATIONS/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 > Comprehensive specification kit for building AI-powered coding agents
 
 This repository contains the architectural specifications, design patterns, and implementation guidelines extracted from a production coding agent system. Use these specs to understand, build, or contribute to coding agent frameworks.
+
+**Repository**: https://github.com/Ritavidhata/coding-agent-specs
 
 ## 📋 Table of Contents
 
