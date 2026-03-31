@@ -4,11 +4,151 @@
 
 The tool system is the foundation for extending the coding agent's capabilities. Each tool is a self-contained unit that performs a specific operation with built-in permission controls, progress tracking, and UI rendering.
 
+**Language-Agnostic**: This specification defines interfaces and patterns that can be implemented in any language (TypeScript, Rust, Go, etc.).
+
 ## Core Concepts
 
-### Tool Interface
+### Tool Interface (Language-Agnostic)
 
-Every tool must implement the `Tool` interface:
+Every tool must implement the `Tool` trait/interface with the following methods:
+
+#### Required Methods
+
+**name() → String**
+- Returns the tool's unique identifier
+- Must be unique across all registered tools
+- Example: `"Read"`, `"Write"`, `"Bash"`
+
+**input_schema() → JSONSchema**
+- Returns JSON Schema for input validation
+- Defines structure, types, and constraints
+- Used for runtime validation before execution
+
+**call(input: Input, context: ToolContext) → Result<ToolResult<Output>, ToolError>**
+- Executes the tool's primary operation
+- Takes validated input and execution context
+- Returns either success (ToolResult) or error (ToolError)
+- Must be async/non-blocking
+
+**check_permissions(input: Input, context: PermissionContext) → Result<PermissionResult, PermissionError>**
+- Determines if the operation is allowed
+- Returns `Allow`, `Deny`, or `Ask` with message
+- Can modify input (e.g., canonicalize paths)
+
+#### Optional Methods
+
+**validate_input(input: Input) → Result<ValidationResult, ValidationError>**
+- Pre-execution validation
+- Returns `Valid` or `Invalid` with reason
+- Default: Always valid
+
+**is_concurrency_safe(input: Input) → Boolean**
+- Can this tool run in parallel with itself?
+- Default: `false` (assume unsafe)
+
+**is_read_only(input: Input) → Boolean**
+- Does this tool modify system state?
+- Default: `false` (assume writes)
+
+**is_destructive(input: Input) → Boolean**
+- Can this tool cause irreversible changes?
+- Default: `false`
+
+### Language-Specific Implementations
+
+#### TypeScript Implementation
+```typescript
+interface Tool<Input, Output, Progress> {
+  name: string;
+  inputSchema: z.ZodSchema<Input>;
+  
+  async call(
+    input: Input,
+    context: ToolContext,
+    canUseTool: CanUseToolFn,
+    parentMessage: AssistantMessage,
+    onProgress?: (progress: Progress) => void
+  ): Promise<ToolResult<Output>>;
+  
+  async checkPermissions(
+    input: Input,
+    context: PermissionContext
+  ): Promise<PermissionResult>;
+  
+  isConcurrencySafe(input: Input): boolean;
+  isReadOnly(input: Input): boolean;
+}
+```
+
+#### Rust Implementation
+```rust
+#[async_trait]
+pub trait Tool: Send + Sync {
+    type Input: Serialize + for<'de> Deserialize<'de>;
+    type Output: Serialize;
+    type Progress: Serialize + Send;
+    
+    fn name(&self) -> &str;
+    fn input_schema(&self) -> JsonSchema;
+    
+    async fn call(
+        &self,
+        input: Self::Input,
+        context: ToolContext,
+    ) -> Result<ToolResult<Self::Output>, ToolError>;
+    
+    async fn check_permissions(
+        &self,
+        input: &Self::Input,
+        context: &PermissionContext,
+    ) -> Result<PermissionResult, PermissionError>;
+    
+    fn is_concurrency_safe(&self, input: &Self::Input) -> bool {
+        false // Default: unsafe
+    }
+    
+    fn is_read_only(&self, _input: &Self::Input) -> bool {
+        false // Default: writes
+    }
+}
+```
+
+#### Go Implementation
+```go
+type Tool interface {
+    Name() string
+    InputSchema() jsonschema.Schema
+    
+    Call(
+        ctx context.Context,
+        input interface{},
+        toolCtx ToolContext,
+    ) (ToolResult, error)
+    
+    CheckPermissions(
+        ctx context.Context,
+        input interface{},
+        permCtx PermissionContext,
+    ) (PermissionResult, error)
+    
+    IsConcurrencySafe(input interface{}) bool
+    IsReadOnly(input interface{}) bool
+}
+```
+
+---
+
+## Building Tools
+
+### Using Builder Pattern (Recommended)
+
+Most implementations provide a builder/helper function to reduce boilerplate:
+
+**TypeScript**: `buildTool()`
+**Rust**: Implement `Tool` trait manually or use macro
+**Go**: Implement `Tool` interface
+
+### Example Tool Implementation
 
 ```typescript
 interface Tool<Input extends AnyObject, Output, P extends ToolProgressData> {

@@ -19,11 +19,17 @@ This repository contains the architectural specifications, design patterns, and 
 - [Tool System](#tool-system)
 - [Task Management](#task-management)
 - [Permission System](#permission-system)
+- [Error Handling](#error-handling)
+- [Concurrency Patterns](#concurrency-patterns)
+- [Ownership & Memory](#ownership--memory)
+- [Type Definitions](#type-definitions)
+- [Implementation Guide](#implementation-guide)
 - [MCP Integration](#mcp-integration)
 - [Agent System](#agent-system)
 - [State Management](#state-management)
 - [CLI Modes](#cli-modes)
 - [Getting Started](#getting-started)
+- [Migration Guide](#migration-guide)
 
 ## Overview
 
@@ -37,6 +43,14 @@ This coding agent is a CLI-based AI assistant that operates in both interactive 
 - **Privacy-first**: Local execution with optional cloud features
 
 ## Architecture
+
+### Language-Agnostic Design
+
+This specification is **language-agnostic** and can be implemented in:
+- ✅ **TypeScript/JavaScript** (original implementation)
+- ✅ **Rust** (recommended for performance)
+- ✅ **Go** (excellent concurrency support)
+- ✅ **Any language** with async support
 
 ### High-Level Design
 
